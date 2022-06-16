@@ -53,7 +53,7 @@ def get_futures_balance(client, _asset="USDT"):
 
 # Init the market we want to trade. First we change leverage type
 # then we change margin type
-def initialise_futures(client, _market="BTCUSDT", _leverage=1, _margin_type="CROSSED"):
+def initialise_futures(client, _market="ETHUSDT", _leverage=1, _margin_type="CROSSED"):
     try:
         client.change_initial_leverage(_market, _leverage)
     except Exception as e:
@@ -66,7 +66,7 @@ def initialise_futures(client, _market="BTCUSDT", _leverage=1, _margin_type="CRO
 
 
 # get all of our open orders in a market
-def get_orders(client, _market="BTCUSDT"):
+def get_orders(client, _market="ETHUSDT"):
     orders = client.get_open_orders(_market)
     return orders, len(orders)
 
@@ -78,7 +78,7 @@ def get_positions(client):
 
 
 # get trades we opened in the market the bot is trading in
-def get_specific_positon(client, _market="BTCUSDT"):
+def get_specific_positon(client, _market="ETHUSDT"):
     positions = get_positions(client)
 
     for position in positions:
@@ -89,7 +89,7 @@ def get_specific_positon(client, _market="BTCUSDT"):
 
 
 # close opened position
-def close_position(client, _market="BTCUSDT"):
+def close_position(client, _market="ETHUSDT"):
     position = get_specific_positon(client, _market)
     qty = float(position.positionAmt)
 
@@ -108,21 +108,21 @@ def close_position(client, _market="BTCUSDT"):
 
 
 # get the liquidation price of the position we are in. - We don't use this - be careful!
-def get_liquidation(client, _market="BTCUSDT"):
+def get_liquidation(client, _market="ETHUSDT"):
     position = get_specific_positon(client, _market)
     price = position.liquidationPrice
     return price
 
 
 # Get the entry price of the position the bot is in
-def get_entry(client, _market="BTCUSDT"):
+def get_entry(client, _market="ETHUSDT"):
     position = get_specific_positon(client, _market)
     price = position.entryPrice
     return price
 
 
 # Execute an order, this can open and close a trade
-def execute_order(client, _market="BTCUSDT", _type="MARKET", _side="BUY", _position_side="BOTH", _qty=1.0):
+def execute_order(client, _market="ETHUSDT", _type="MARKET", _side="BUY", _position_side="BOTH", _qty=1.0):
     client.post_order(symbol=_market,
                       ordertype=_type,
                       side=_side,
@@ -140,7 +140,7 @@ def execute_market_order(client, _price, _stop_price, _qty, _market, _type, _sid
                       )
 
 
-def execute_limit_order(client, _stop_price, _qty, _market="BTCUSDT", _type="LIMIT", _side="SELL",
+def execute_limit_order(client, _stop_price, _qty, _market="ETHUSDT", _type="LIMIT", _side="SELL",
                         time_in_force=TimeInForce.GTC, reduce_only=True):
     client.post_order(symbol=_market,
                       ordertype=_type,
@@ -151,19 +151,32 @@ def execute_limit_order(client, _stop_price, _qty, _market="BTCUSDT", _type="LIM
                       reduceOnly=reduce_only)
 
 
+def submit_trailing_order(client, _stop_price, _qty=1.0, _market="ETHUSDT", _type="TRAILING_STOP_MARKET", _side="BUY",
+         _callbackRate=0.4, time_in_force=TimeInForce.GTC, reduce_only=True):
+    client.post_order(symbol=_market,
+                      ordertype=_type,
+                      side=_side,
+                      callbackRate=_callbackRate,
+                      quantity=_qty,
+                      workingType="CONTRACT_PRICE",
+                      activationPrice=_stop_price,
+                      timeInForce=time_in_force,
+                      reduceOnly=reduce_only)
+
+
 # calculate how big a position we can open with the margin we have and the leverage we are using
-def calculate_position_size(client, usdt_balance=1.0, _market="BTCUSDT", _leverage=1):
+def calculate_position_size(client, usdt_balance=1.0, _market="ETHUSDT", _leverage=1):
     price = client.get_symbol_price_ticker(_market)
     price = price[0].price
 
     qty = (float(usdt_balance) / price) * _leverage
-    qty = round(qty * 0.99, 8)
+    qty = round(qty * 0.40, 8)
 
     return qty
 
 
 # check if the position is still active, or if the trailing stop was hit.
-def check_in_position(client, _market="BTCUSDT"):
+def check_in_position(client, _market="ETHUSDT"):
     position = get_specific_positon(client, _market)
 
     in_position = False
@@ -174,26 +187,17 @@ def check_in_position(client, _market="BTCUSDT"):
     return in_position
 
 
-# Create a trailing stop to close our order if something goes bad, lock in profits or if the trade goes against us!
-def submit_trailing_order(client, _market="BTCUSDT", _type="TRAILING_STOP_MARKET", _side="BUY",
-                          _qty=1.0, _callbackRate=4):
-    client.post_order(symbol=_market,
-                      ordertype=_type,
-                      side=_side,
-                      callbackRate=_callbackRate,
-                      quantity=_qty,
-                      workingType="CONTRACT_PRICE")
 
 
 # get the current market price
-def get_market_price(client, _market="BTCUSDT"):
+def get_market_price(client, _market="ETHUSDT"):
     price = client.get_symbol_price_ticker(_market)
     price = price[0].price
     return price
 
 
 # get the precision of the market, this is needed to avoid errors when creating orders
-def get_market_precision(client, _market="BTCUSDT"):
+def get_market_precision(client, _market="ETHUSDT"):
     market_data = client.get_exchange_information()
     precision = 3
     for market in market_data.symbols:
@@ -203,7 +207,7 @@ def get_market_precision(client, _market="BTCUSDT"):
     return precision
 
 
-def get_price_precision(client, _market="BTCUSDT"):
+def get_price_precision(client, _market="ETHUSDT"):
     market_data = client.get_exchange_information()
     precision = 2
     for market in market_data.symbols:
@@ -286,8 +290,8 @@ def get_decimal_value(value, price_precision):
     return Decimal(str(value)).quantize(Decimal(get_str_decimal(price_precision)), rounding=ROUND_DOWN)
 
 
-def handle_signal(client, std, market="BTCUSDT", leverage=3, order_side="BUY",
-                  stop_side="SELL", take_profit=4.0, stop_loss=5.0):
+def handle_signal(client, std, market="ETHUSDT", leverage=3, order_side="BUY",
+                  stop_side="SELL", take_profit=4.0, stop_loss=5.0, _callbackRate=0.4):
     initialise_futures(client, _market=market, _leverage=leverage)
 
     # close any open trailing stops we have
@@ -358,7 +362,11 @@ def handle_signal(client, std, market="BTCUSDT", leverage=3, order_side="BUY",
         take_profit_price = get_decimal_value(take_profit_raw, price_precision)
     else:
         take_profit_price = get_decimal_half(take_profit_raw)
-    execute_limit_order(client, take_profit_price, qty, _market=market, _type="LIMIT", _side=stop_side)
+   # execute_limit_order(client, take_profit_price, qty, _market=market, _type="LIMIT", _side=stop_side)
+    submit_trailing_order(client, take_profit_price, qty, _market=market, _type="TRAILING_STOP_MARKET", _side=stop_side, _callbackRate="0.4")
+
+
+
 
     singlePrint(f"Take Profit ${take_profit_price} is created", std)
 
@@ -493,6 +501,16 @@ def print_condition(my_dict, ind1, ind2, symbol):
 def get_remainder_from_5thMinute():
     return datetime.datetime.now().minute % 5
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 def trade(my_dict, std):
     entry = 0
@@ -544,9 +562,9 @@ def trade(my_dict, std):
             # (my_dict['cci'] < -150)
     ):
         entry = 1
-        print("************* Long Position Matched *******************")
+        print(bcolors.OKGREEN + "************* Long Position Matched *******************" + bcolors.ENDC)
     else:
-        print("************* Long Position Not Matched *******************")
+        print(bcolors.FAIL + "************* Long Position Not Matched *******************" + bcolors.ENDC)
 
     print("\n************* Short Position Check *******************")
     print_condition(my_dict, "ma_fiftyhigh", "current_price", ">")
@@ -592,9 +610,9 @@ def trade(my_dict, std):
             # (my_dict['cci'] > 150)
     ):
         entry = -1
-        print("************* Short Position Matched *******************")
+        print(bcolors.OKGREEN + "************* Short Position Matched *******************" + bcolors.ENDC)
     else:
-        print("************* Short Position Not Matched *******************\n")
+        print(bcolors.FAIL + "************* Short Position Not Matched *******************" + bcolors.ENDC)
 
     blockPrint()
     return entry
@@ -656,7 +674,7 @@ def get_dataframe(candles):
 
 # get the data from the market, create heikin ashi candles and then generate signals
 # return the signals to the bot
-def get_signal(client, _market="BTCUSDT", _period="15m", use_last=False, std=None):
+def get_signal(client, _market="ETHUSDT", _period="15m", use_last=False, std=None):
     candles = client.get_candlestick_data(_market, interval=_period, limit=1000)
     candles1m = client.get_candlestick_data(_market, interval="1m", limit=1000)
     current_price = client.get_mark_price(_market).markPrice
@@ -667,7 +685,7 @@ def get_signal(client, _market="BTCUSDT", _period="15m", use_last=False, std=Non
 
 
 # get signal that is confirmed across multiple time scales
-def get_multi_scale_signal(client, _market="BTCUSDT", _periods=["1m"], std=None):
+def get_multi_scale_signal(client, _market="ETHUSDT", _periods=["1m"], std=None):
     signal = 0
     use_last = True
 
@@ -682,7 +700,7 @@ def get_multi_scale_signal(client, _market="BTCUSDT", _periods=["1m"], std=None)
 
 
 # calculate a rounded position size for the bot, based on current USDT holding, leverage and market
-def calculate_position(client, _market="BTCUSDT", _leverage=1):
+def calculate_position(client, _market="ETHUSDT", _leverage=1):
     usdt = get_futures_balance(client, _asset="USDT")
     qty = calculate_position_size(client, usdt_balance=usdt, _market=_market, _leverage=_leverage)
     precision = get_market_precision(client, _market=_market)
@@ -692,7 +710,7 @@ def calculate_position(client, _market="BTCUSDT", _leverage=1):
 
 
 # function for logging trades to csv for later analysis
-def log_trade(_qty=0, _market="BTCUSDT", _leverage=1, _side="long", _cause="signal", _trigger_price=0, _market_price=0,
+def log_trade(_qty=0, _market="ETHUSDT", _leverage=1, _side="long", _cause="signal", _trigger_price=0, _market_price=0,
               _type="exit"):
     df = pd.read_csv("trade_log.csv")
     df2 = pd.DataFrame()

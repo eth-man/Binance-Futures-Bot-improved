@@ -18,6 +18,9 @@ margin_type = settings.margin_type
 confirmation_periods = settings.trading_periods.split(",")
 take_profit = float(settings.take_profit)
 stop_loss = float(settings.stop_loss)
+trailing_percentage = float(settings.trailing_percentage)
+#trailing_percentage = settings.trailing_percentage
+
 
 # turn off print unless we really need to print something
 std = bf.getStdOut()
@@ -49,14 +52,14 @@ while True:
                 qty, side, in_position = bf.handle_signal(client, std,
                                                           market=market, leverage=leverage,
                                                           order_side="SELL", stop_side="BUY",
-                                                          take_profit=take_profit, stop_loss=stop_loss)
+                                                          take_profit=take_profit, stop_loss=stop_loss, _callbackRate=trailing_percentage)
 
             # if the entry is 1, then open a LONG
             elif entry == 1:
                 qty, side, in_position = bf.handle_signal(client, std,
                                                           market=market, leverage=leverage,
                                                           order_side="BUY", stop_side="SELL",
-                                                          take_profit=take_profit, stop_loss=stop_loss)
+                                                          take_profit=take_profit, stop_loss=stop_loss, _callbackRate=trailing_percentage)
             else:
                 bf.singlePrint("Conditions not matched, no trade will be taken\n", std)
 

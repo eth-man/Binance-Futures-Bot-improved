@@ -7,7 +7,7 @@ Orginal version by ['Hephyrius'](https://github.com/Hephyrius/binance_futures_bo
 
 
 ## Improvments vision:
-1. [ ] change Take Profit into trailing stop
+1. [X] change Take Profit into trailing stop
 2. [ ] move stop loss up or down with price change to protect profit
 3. [ ] track total profit
 4. [ ] calulate fees
