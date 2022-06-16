@@ -5,5 +5,5 @@
 	"margin_type": "CROSSED",
 	"take_profit": "4.0",
 	"stop_loss": "5.0",
-	"api_url" : "https://fapi.binance.com/"
+	"api_url" : "https://fapi.binance.com"
 }

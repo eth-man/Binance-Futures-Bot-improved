@@ -2,25 +2,30 @@
 
 A simple bot that trades futures on binance.
 
-## Supporting this project
-If you'd like to support my work please consider: 
+Forked the TA code version by ['NextPuma'](https://github.com/nextpuma/Binance-Futures-Bot)
+Orginal version by ['Hephyrius'](https://github.com/Hephyrius/binance_futures_bot)
 
-* [donating to the patreon](https://www.patreon.com/SingularitAI)
-* [Supporting on github](https://github.com/sponsors/hephyrius)
-* [Following the youtube channel](https://www.youtube.com/channel/UCamWRprZmZ02TJAvGCCZzYg)
 
-## Table of Contents  
-* [Disclaimer](#Disclaimer)  
-* [Trading Strategy](#Trading-Strategy)  
-* [Bot Specifics](#Bot-Specifics)  
-* [Installation](#Installation)  
-* [Setup](#Setup)  
-* [Useage](#Useage)  
-* [Misc](#Misc)  
+## Improvments vision:
+1. [ ] change Take Profit into trailing stop
+2. [ ] move stop loss up or down with price change to protect profit
+3. [ ] track total profit
+4. [ ] calulate fees
+5. [ ]
+
+
+## Table of Contents
+* [Disclaimer](#Disclaimer)
+* [Trading Strategy](#Trading-Strategy)
+* [Bot Specifics](#Bot-Specifics)
+* [Installation](#Installation)
+* [Setup](#Setup)
+* [Useage](#Useage)
+* [Misc](#Misc)
 
 ## Disclaimer
 
-### This bot is intended to be a Proof-of-concept. The developer will not be responsible for any losses that are a result of using this program. This program or anything related to it, should not be considered investment advice. Understand the risks involved, do your own research and only trade with amounts you are willing to lose. 
+### This bot is intended to be a Proof-of-concept. The developer will not be responsible for any losses that are a result of using this program. This program or anything related to it, should not be considered investment advice. Understand the risks involved, do your own research and only trade with amounts you are willing to lose.
 
 ## Trading Strategy
 
@@ -46,7 +51,7 @@ Positions are given to a bot as a list of historic "signals". These tell the bot
 * Short is represented by -1
 * Stay/do nothing is represented by 0
 
-The bot uses the second last signal from the list of historic signals to make it's choice of action. This is because the last signal in the list is the current unresolved candle, as this is still in flux. 
+The bot uses the second last signal from the list of historic signals to make it's choice of action. This is because the last signal in the list is the current unresolved candle, as this is still in flux.
 
 ### Position Exit
 The bot attempts to stay in positions as long as possible.
@@ -70,17 +75,17 @@ def new_trading_signal(h_o, h_h, h_l, h_c, use_last=False):
             if h_o[i-1] < h_c[i-1]:
                 entry.append(1)
                 last = 1
-            
+
             elif h_o[i-1] > h_c[i-1]:
                 entry.append(-1)
                 last = -1
-            
+
             else:
                 if use_last:
                     entry.append(last)
                 else:
                     entry.append(0)
-    
+
     return entry
 ```
 
@@ -119,14 +124,14 @@ python -m pip install git+https://github.com/Binance-docs/Binance_Futures_python
 
 ## Setup
 
-The bot can be modified for use with any USDT futures market, leverage and time frame combinatiob by editing the settings.json file. 
+The bot can be modified for use with any USDT futures market, leverage and time frame combinatiob by editing the settings.json file.
 
 ### Settings.json
 
 You should replace the market, leverage and period with values that are relevant.
 
 * Market - this is the binance usdt futures market you would like to trade. it is usually the ticker of the coin followed by usdt. For insance ethereum would be "ETHUSDT" and tron would be "TRXUSDT". You can usually find the market name on binance.
-* Period value - this represents the timescales at which the strategy will trade signals. represented as minutes, hours or days. Valid : 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d. To use aggregate signals across multiple time scales, you should seperate the values with a comma. 
+* Period value - this represents the timescales at which the strategy will trade signals. represented as minutes, hours or days. Valid : 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d. To use aggregate signals across multiple time scales, you should seperate the values with a comma.
 * Leverage - This is the leverage amount you would like to apply to your trades. The Leverage on binance can go up to 125x, however the maximum leverage is dependant on market.
 * Margin_type - this is if youd like to use ISOLATED margin and protect your account value or CROSSED and use the entire account value as margin for the trades.
 * trailing_percentage - percentage the trailing stop should follow. This will act as a fail safe incase the bot fails or enters a bad trade, and will help lock in profits on the good trades.
@@ -174,7 +179,7 @@ nohup python bot.py &
 
 tl;dr - Short answer yes and no!
 
-This really depends on market conditions, leverage and time period! The bot seems to struggle when the market is side-ways, but seems to excell when trending. But again this depends on settings and specific markets. Nothing is guaranteed ( refer to [Disclaimer](#Disclaimer) ). 
+This really depends on market conditions, leverage and time period! The bot seems to struggle when the market is side-ways, but seems to excell when trending. But again this depends on settings and specific markets. Nothing is guaranteed ( refer to [Disclaimer](#Disclaimer) ).
 
 ### Liquidation Price
 
